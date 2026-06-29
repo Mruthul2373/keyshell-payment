@@ -1,5 +1,10 @@
 pipeline {
+
 agent any
+
+environment {
+    SCANNER_HOME = tool 'sonar-scanner'
+}
 
 stages {
 
@@ -9,14 +14,21 @@ stages {
         }
     }
 
-    stage('Verify Docker') {
+    stage('SonarQube Analysis') {
         steps {
-            sh 'docker version'
-            sh 'docker ps'
+            withSonarQubeEnv('SonarQube') {
+                sh '''
+                ${SCANNER_HOME}/bin/sonar-scanner \
+                -Dsonar.projectKey=keyshell-payment \
+                -Dsonar.projectName=keyshell-payment \
+                -Dsonar.sources=. \
+                -Dsonar.sourceEncoding=UTF-8
+                '''
+            }
         }
     }
 
-    stage('Build Backend Image') {
+    stage('Build Backend') {
         steps {
             dir('backend') {
                 sh 'docker build -t keyshell-backend:v1 .'
@@ -24,7 +36,7 @@ stages {
         }
     }
 
-    stage('Build Frontend Image') {
+    stage('Build Frontend') {
         steps {
             dir('frontend/angular-ui') {
                 sh 'docker build -t keyshell-frontend:v1 .'
@@ -32,9 +44,9 @@ stages {
         }
     }
 
-    stage('List Images') {
+    stage('Verify Images') {
         steps {
-            sh 'docker images'
+            sh 'docker images | grep keyshell'
         }
     }
 }
