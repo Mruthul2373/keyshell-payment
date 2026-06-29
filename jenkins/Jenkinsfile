@@ -1,0 +1,42 @@
+pipeline {
+agent any
+
+stages {
+
+    stage('Checkout') {
+        steps {
+            checkout scm
+        }
+    }
+
+    stage('Verify Docker') {
+        steps {
+            sh 'docker version'
+            sh 'docker ps'
+        }
+    }
+
+    stage('Build Backend Image') {
+        steps {
+            dir('backend') {
+                sh 'docker build -t keyshell-backend:v1 .'
+            }
+        }
+    }
+
+    stage('Build Frontend Image') {
+        steps {
+            dir('frontend/angular-ui') {
+                sh 'docker build -t keyshell-frontend:v1 .'
+            }
+        }
+    }
+
+    stage('List Images') {
+        steps {
+            sh 'docker images'
+        }
+    }
+}
+
+}
