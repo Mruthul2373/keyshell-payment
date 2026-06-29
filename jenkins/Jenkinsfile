@@ -4,11 +4,12 @@ agent any
 
 environment {
     SCANNER_HOME = tool 'sonar-scanner'
+    NEXUS_REGISTRY = "13.234.31.221:8082"
 }
 
 stages {
 
-    stage('Checkout') {
+    stage('Checkout SCM') {
         steps {
             checkout scm
         }
@@ -49,6 +50,55 @@ stages {
             sh 'docker images | grep keyshell'
         }
     }
+
+    stage('Tag Backend Image') {
+        steps {
+            sh '''
+            docker tag keyshell-backend:v1 \
+            ${NEXUS_REGISTRY}/keyshell-backend:v1
+            '''
+        }
+    }
+
+    stage('Push Backend Image') {
+        steps {
+            sh '''
+            docker push \
+            ${NEXUS_REGISTRY}/keyshell-backend:v1
+            '''
+        }
+    }
+
+    stage('Tag Frontend Image') {
+        steps {
+            sh '''
+            docker tag keyshell-frontend:v1 \
+            ${NEXUS_REGISTRY}/keyshell-frontend:v1
+            '''
+        }
+    }
+
+    stage('Push Frontend Image') {
+        steps {
+            sh '''
+            docker push \
+            ${NEXUS_REGISTRY}/keyshell-frontend:v1
+            '''
+        }
+    }
+
+}
+
+post {
+
+    success {
+        echo 'Pipeline completed successfully'
+    }
+
+    failure {
+        echo 'Pipeline failed'
+    }
+
 }
 
 }
