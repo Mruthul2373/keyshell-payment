@@ -1,138 +1,175 @@
 pipeline {
-agent any
+    agent any
 
-environment {
-    SCANNER_HOME = tool 'sonar-scanner'
-    NEXUS_REGISTRY = '13.234.31.221:8082'
-    DOCKERHUB_USER = 'mruthul2373'
-}
-
-stages {
-
-    stage('Checkout SCM') {
-        steps {
-            checkout scm
-        }
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+        NEXUS_REGISTRY = '13.234.31.221:8082'
+        DOCKERHUB_USER = 'mruthul2373'
     }
 
-    stage('SonarQube Analysis') {
-        steps {
-            withSonarQubeEnv('SonarQube') {
-                sh """
-                ${SCANNER_HOME}/bin/sonar-scanner \
-                -Dsonar.projectKey=keyshell-payment \
-                -Dsonar.projectName=keyshell-payment \
-                -Dsonar.sources=. \
-                -Dsonar.sourceEncoding=UTF-8 \
-                -Dsonar.exclusions=**/venv/**,**/node_modules/**,**/dist/**
-                """
+    stages {
+
+        stage('Checkout SCM') {
+            steps {
+                checkout scm
             }
         }
-    }
 
-    stage('Build Backend') {
-        steps {
-            dir('backend') {
-                sh 'docker build -t keyshell-backend:v1 .'
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                    ${SCANNER_HOME}/bin/sonar-scanner \
+                    -Dsonar.projectKey=keyshell-payment \
+                    -Dsonar.projectName=keyshell-payment \
+                    -Dsonar.sources=. \
+                    -Dsonar.sourceEncoding=UTF-8 \
+                    -Dsonar.exclusions=**/venv/**,**/node_modules/**,**/dist/**
+                    """
+                }
             }
         }
-    }
 
-    stage('Build Frontend') {
-        steps {
-            dir('frontend/angular-ui') {
-                sh 'docker build -t keyshell-frontend:v1 .'
+        stage('Build Backend') {
+            steps {
+                dir('backend') {
+                    sh 'docker build -t keyshell-backend:v1 .'
+                }
             }
         }
-    }
 
-    stage('Verify Images') {
-        steps {
-            sh 'docker images | grep keyshell'
+        stage('Build Frontend') {
+            steps {
+                dir('frontend/angular-ui') {
+                    sh 'docker build -t keyshell-frontend:v1 .'
+                }
+            }
         }
-    }
 
-    stage('Docker Login Nexus') {
-        steps {
-            withCredentials([
-                usernamePassword(
-                    credentialsId: 'nexus-creds',
-                    usernameVariable: 'NEXUS_USER',
-                    passwordVariable: 'NEXUS_PASS'
-                )
-            ]) {
+        stage('Verify Images') {
+            steps {
+                sh 'docker images | grep keyshell'
+            }
+        }
+
+        stage('Docker Login Nexus') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'nexus-creds',
+                        usernameVariable: 'NEXUS_USER',
+                        passwordVariable: 'NEXUS_PASS'
+                    )
+                ]) {
+                    sh '''
+                    echo "$NEXUS_PASS" | docker login 13.234.31.221:8082 \
+                    -u "$NEXUS_USER" \
+                    --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push Backend To Nexus') {
+            steps {
                 sh '''
-                echo "$NEXUS_PASS" | docker login 13.234.31.221:8082 \
-                -u "$NEXUS_USER" \
-                --password-stdin
+                docker tag keyshell-backend:v1 \
+                ${NEXUS_REGISTRY}/keyshell-backend:v1
+
+                docker push \
+                ${NEXUS_REGISTRY}/keyshell-backend:v1
                 '''
             }
         }
-    }
 
-    stage('Push Backend To Nexus') {
-        steps {
-            sh '''
-            docker tag keyshell-backend:v1 ${NEXUS_REGISTRY}/keyshell-backend:v1
-            docker push ${NEXUS_REGISTRY}/keyshell-backend:v1
-            '''
-        }
-    }
-
-    stage('Push Frontend To Nexus') {
-        steps {
-            sh '''
-            docker tag keyshell-frontend:v1 ${NEXUS_REGISTRY}/keyshell-frontend:v1
-            docker push ${NEXUS_REGISTRY}/keyshell-frontend:v1
-            '''
-        }
-    }
-
-    stage('Docker Hub Login') {
-        steps {
-            withCredentials([
-                usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )
-            ]) {
+        stage('Push Frontend To Nexus') {
+            steps {
                 sh '''
-                echo "$DOCKER_PASS" | docker login \
-                -u "$DOCKER_USER" \
-                --password-stdin
+                docker tag keyshell-frontend:v1 \
+                ${NEXUS_REGISTRY}/keyshell-frontend:v1
+
+                docker push \
+                ${NEXUS_REGISTRY}/keyshell-frontend:v1
                 '''
+            }
+        }
+
+        stage('Docker Hub Login') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login \
+                    -u "$DOCKER_USER" \
+                    --password-stdin
+                    '''
+                }
+            }
+        }
+
+        stage('Push Backend To DockerHub') {
+            steps {
+                sh '''
+                docker tag keyshell-backend:v1 \
+                ${DOCKERHUB_USER}/keyshell-backend:v1
+
+                docker push \
+                ${DOCKERHUB_USER}/keyshell-backend:v1
+                '''
+            }
+        }
+
+        stage('Push Frontend To DockerHub') {
+            steps {
+                sh '''
+                docker tag keyshell-frontend:v1 \
+                ${DOCKERHUB_USER}/keyshell-frontend:v1
+
+                docker push \
+                ${DOCKERHUB_USER}/keyshell-frontend:v1
+                '''
+            }
+        }
+
+        stage('Deploy To EC2') {
+            steps {
+                sshagent(['deploy-server-ssh']) {
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ec2-user@13.127.131.178 '
+
+                        docker pull mruthul2373/keyshell-backend:v1
+
+                        docker pull mruthul2373/keyshell-frontend:v1
+
+                        cd /opt/keyshell
+
+                        docker-compose down
+
+                        docker-compose up -d
+                    '
+                    '''
+                }
             }
         }
     }
 
-    stage('Push Backend To DockerHub') {
-        steps {
-            sh '''
-            docker tag keyshell-backend:v1 ${DOCKERHUB_USER}/keyshell-backend:v1
-            docker push ${DOCKERHUB_USER}/keyshell-backend:v1
-            '''
+    post {
+
+        success {
+            echo 'Pipeline completed successfully'
+        }
+
+        failure {
+            echo 'Pipeline failed'
+        }
+
+        always {
+            cleanWs()
         }
     }
-
-    stage('Push Frontend To DockerHub') {
-        steps {
-            sh '''
-            docker tag keyshell-frontend:v1 ${DOCKERHUB_USER}/keyshell-frontend:v1
-            docker push ${DOCKERHUB_USER}/keyshell-frontend:v1
-            '''
-        }
-    }
-}
-
-post {
-    success {
-        echo 'Pipeline completed successfully'
-    }
-
-    failure {
-        echo 'Pipeline failed'
-    }
-}
-
 }
