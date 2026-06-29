@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: keyshell-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    build:
+      context: ../backend
+    container_name: keyshell-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URL: mongodb://admin:admin123@mongodb:27017
+    depends_on:
+      - mongodb
+
+  frontend:
+    build:
+      context: ../frontend/angular-ui
+    container_name: keyshell-frontend
+    restart: always
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:

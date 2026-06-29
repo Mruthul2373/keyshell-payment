@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter',sans-serif;
+}
+
+html,
+body{
+  height:100%;
+  width:100%;
+}
+
+body{
+  background:#f5f7fb;
+  color:#1e293b;
+  font-size:14px;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+
+::-webkit-scrollbar{
+  width:8px;
+}
+
+::-webkit-scrollbar-track{
+  background:#f1f5f9;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#c62828;
+  border-radius:20px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background:#a61d1d;
+}
+
+a{
+  text-decoration:none;
+  color:inherit;
+}
+
+img{
+  max-width:100%;
+  display:block;
+}
+
+input,
+textarea,
+select{
+  font-family:'Inter',sans-serif;
+  outline:none;
+}
+
+button{
+  font-family:'Inter',sans-serif;
+  cursor:pointer;
+  transition:all .3s ease;
+}
+
+.text-primary{
+  color:#c62828;
+}
+
+.bg-primary{
+  background:#c62828;
+}
+
+.shadow-card{
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.rounded{
+  border-radius:20px;
+}
+
+.card{
+  animation:fadeIn .4s ease-in-out;
+}
+
+@keyframes fadeIn{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}

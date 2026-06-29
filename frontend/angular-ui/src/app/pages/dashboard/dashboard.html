@@ -1,0 +1,139 @@
+<app-sidebar></app-sidebar>
+
+<div class="main">
+
+  <app-navbar></app-navbar>
+
+  <div class="content">
+
+    <!-- Dashboard Cards -->
+
+    <div class="cards">
+
+      <div class="card">
+
+        <div class="card-icon">
+          👥
+        </div>
+
+        <div>
+
+          <h4>Total Users</h4>
+
+          <h2>{{dashboardData.total_users}}</h2>
+
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div class="card-icon">
+          💳
+        </div>
+
+        <div>
+
+          <h4>Total Payments</h4>
+
+          <h2>{{dashboardData.total_payments}}</h2>
+
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div class="card-icon">
+          📈
+        </div>
+
+        <div>
+
+          <h4>Revenue</h4>
+
+          <h2>{{dashboardData.revenue}}</h2>
+
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div class="card-icon">
+          ⚠️
+        </div>
+
+        <div>
+
+          <h4>Failed Transactions</h4>
+
+          <h2>{{dashboardData.failed_transactions}}</h2>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Analytics Section -->
+
+    <div class="dashboard-grid">
+
+      <div class="activity">
+
+        <h3>Recent Activity</h3>
+
+        <ul>
+
+          <li>✅ Payment received from Infosys</li>
+          <li>✅ User account created</li>
+          <li>✅ Invoice generated</li>
+          <li>✅ Refund completed</li>
+
+        </ul>
+
+      </div>
+
+      <div class="quick-stats">
+
+        <h3>Quick Stats</h3>
+
+        <p><strong>Success Rate:</strong> 98.8%</p>
+
+        <p><strong>Today's Revenue:</strong> ₹2.4L</p>
+
+        <p><strong>Active Users:</strong> 8,540</p>
+
+      </div>
+
+    </div>
+
+    <!-- Revenue Analytics -->
+
+    <div class="chart-card">
+
+      <h3>Revenue Analytics</h3>
+
+      <div class="chart-placeholder">
+
+        <div class="bar h1"></div>
+        <div class="bar h2"></div>
+        <div class="bar h3"></div>
+        <div class="bar h4"></div>
+        <div class="bar h5"></div>
+        <div class="bar h6"></div>
+
+      </div>
+
+    </div>
+
+    <div class="footer">
+
+      © 2026 KeyShell Payment Platform
+
+    </div>
+
+  </div>
+
+</div>

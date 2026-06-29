@@ -1,0 +1,61 @@
+<div class="dashboard-layout">
+
+  <app-sidebar></app-sidebar>
+
+  <div class="main-content">
+
+    <app-navbar></app-navbar>
+
+    <div class="payments-container">
+
+      <h2>Payments Management</h2>
+
+      <div class="stats-card">
+        <h3>Total Payments</h3>
+        <span>{{ payments.length }}</span>
+      </div>
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let payment of payments">
+
+            <td>{{ payment.customer }}</td>
+
+            <td>₹ {{ payment.amount }}</td>
+
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="{
+                  'success': payment.status === 'SUCCESS',
+                  'failed': payment.status === 'FAILED'
+                }">
+
+                {{ payment.status }}
+
+              </span>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
