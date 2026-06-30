@@ -5,6 +5,7 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'
         NEXUS_REGISTRY = '13.234.31.221:8082'
         DOCKERHUB_USER = 'mruthul2373'
+        DEPLOY_SERVER = '13.127.131.178'
     }
 
     stages {
@@ -139,20 +140,15 @@ pipeline {
         stage('Deploy To EC2') {
             steps {
                 sshagent(['deploy-server-ssh']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@13.127.131.178 '
-
-                        docker pull mruthul2373/keyshell-backend:v1
-
-                        docker pull mruthul2373/keyshell-frontend:v1
-
-                        cd /opt/keyshell
-
-                        docker-compose down
-
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ec2-user@${DEPLOY_SERVER} '
+                        docker pull ${DOCKERHUB_USER}/keyshell-backend:v1 &&
+                        docker pull ${DOCKERHUB_USER}/keyshell-frontend:v1 &&
+                        cd /opt/keyshell &&
+                        docker-compose down &&
                         docker-compose up -d
                     '
-                    '''
+                    """
                 }
             }
         }
